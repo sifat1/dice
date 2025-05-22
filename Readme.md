@@ -36,6 +36,7 @@ This project is a C# application that simulates rolling dice. It is designed to 
     ```
 
 ## Demo Play 
+```bash
 dotnet run dice.dill "2,2,4,4,9,9 1,1,6,6,8,8 3,3,5,5,7,7"
 Let's determine who makes the first move.
 I selected a random value in range 0..1 (HMAC=EED3DE6BAC9529708750C47A14C6B3A4EC61091B8EFEE43212663E2D348FF81C).
@@ -101,3 +102,4 @@ The fair number generation result is 1 + 5 = 0 (mod 6).
 My roll result is 3.
 I win 2 < 3!
 
+```
