@@ -3,9 +3,9 @@ using ConsoleTables;
 
 public class ProbabilityTableGenerator
 {
-    public static double[,] GenerateProbabilityTable(string[] diceSets)
+    public static double[,] GenerateProbabilityTable(List<Dice> diceSets)
     {
-        int n = diceSets.Length;
+        int n = diceSets.Count;
         double[,] probabilities = new double[n, n];
 
         for (int i = 0; i < n; i++)
@@ -22,17 +22,17 @@ public class ProbabilityTableGenerator
         return probabilities;
     }
 
-    public static void DisplayProbabilityTable(string[] diceSets)
+    public static void DisplayProbabilityTable(List<Dice> diceSets)
     {
         double[,] probabilities = GenerateProbabilityTable(diceSets);
-        int n = diceSets.Length;
+        int n = diceSets.Count;
         string title = "Probability of the win fоr the user:";
         var headers = new string[n + 1];
         headers[0] = "User dice v";
         Console.WriteLine(title);
         for (int i = 0; i < n; i++)
         {
-            headers[i + 1] = diceSets[i];
+            headers[i + 1] = diceSets[i].ToString();
         }
         var table = new ConsoleTable(headers); 
 

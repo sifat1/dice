@@ -32,8 +32,7 @@ public class DiceGame
 
     public void StartGame()
     {
-        var diceLabelArray = diceList.Select(d => d.ToString()).ToArray();
-        var ui = new GameUI(diceLabelArray);
+        var ui = new GameUI(diceList);
 
         ui.DisplayMessage("Let's determine who makes the first move.");
         var (key, computerNumber, hmac) = cryptoService.GenerateCommitment(0, 1);

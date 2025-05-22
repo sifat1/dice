@@ -9,7 +9,7 @@ public class ParseDice
             throw new ArgumentException("Each dice set must contain 6 values.");
         }
 
-        return Array.ConvertAll(dice.Split(','), int.Parse);
+        return Array.ConvertAll(parts, int.Parse);
     }
 
 

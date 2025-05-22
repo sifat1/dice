@@ -2,11 +2,12 @@ using System;
 
 public class GameUI
 {
-    private readonly string[] diceSets;
 
-    public GameUI(string[] availableDice)
+    private List<Dice> diceList = new();
+
+    public GameUI(List<Dice> availableDice)
     {
-        diceSets = availableDice;
+        diceList = availableDice;
     }
 
     public void DisplayMessage(string message)
@@ -34,7 +35,7 @@ public class GameUI
             if (input.Equals("X", StringComparison.OrdinalIgnoreCase))
                 Environment.Exit(0);
             else if (input == "?")
-                ShowHelp(diceSets);
+                ShowHelp(diceList);
             
             else if (int.TryParse(input, out int result) && result >= min && result <= max)
                 return result;
@@ -95,8 +96,8 @@ public class GameUI
             Console.WriteLine("It's a tie!");
     }
 
-    private void ShowHelp(string[] dices)
+    private void ShowHelp(List<Dice> dices)
     {
-        ProbabilityTableGenerator.DisplayProbabilityTable(diceSets);
+        ProbabilityTableGenerator.DisplayProbabilityTable(diceList);
     }
 }
