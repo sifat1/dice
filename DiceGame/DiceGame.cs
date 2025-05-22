@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 public class DiceGame
 {
@@ -9,8 +10,7 @@ public class DiceGame
     private Player computer = new("Computer");
 
     private List<Dice> diceList = new();
-    private List<Dice> availableDice = new();
-    private Dictionary<Dice, string> diceLabels = new();
+    private List<int> availableDiceIndices = new(); 
 
     public DiceGame(string[] diceSets, CryptographicService cryptoService)
     {
@@ -20,17 +20,20 @@ public class DiceGame
         {
             var dice = new Dice(ParseDice.Parse(diceSet));
             diceList.Add(dice);
-            diceLabels[dice] = diceSet;
         }
 
         ResetAvailableDice();
     }
 
-    private void ResetAvailableDice() => availableDice = new List<Dice>(diceList);
+    private void ResetAvailableDice()
+    {
+        availableDiceIndices = Enumerable.Range(0, diceList.Count).ToList();
+    }
 
     public void StartGame()
     {
-        var ui = new GameUI(diceLabels.Values.ToArray());
+        var diceLabelArray = diceList.Select(d => d.ToString()).ToArray();
+        var ui = new GameUI(diceLabelArray);
 
         ui.DisplayMessage("Let's determine who makes the first move.");
         var (key, computerNumber, hmac) = cryptoService.GenerateCommitment(0, 1);
@@ -42,49 +45,49 @@ public class DiceGame
         bool userGoesFirst = userGuess == computerNumber;
         ui.DisplayFirstMoveResult(userGoesFirst);
 
-        Dice playerDice, computerDice;
+        int playerIndex, computerIndex;
 
         if (userGoesFirst)
         {
-            playerDice = SelectPlayerDice(ui);
-            computerDice = SelectComputerDice();
+            playerIndex = SelectPlayerDice(ui);
+            computerIndex = SelectComputerDice();
         }
         else
         {
-            computerDice = SelectComputerDice();
-            playerDice = SelectPlayerDice(ui);
+            computerIndex = SelectComputerDice();
+            playerIndex = SelectPlayerDice(ui);
         }
 
-        ui.DisplayDiceChoice(diceLabels[playerDice], player.name);
-        ui.DisplayDiceChoice(diceLabels[computerDice], computer.name);
+        ui.DisplayDiceChoice(diceList[playerIndex].ToString(), player.name);
+        ui.DisplayDiceChoice(diceList[computerIndex].ToString(), computer.name);
 
-        player.score = PlayRound(playerDice, player.name, ui);
-        computer.score = PlayRound(computerDice, computer.name, ui);
+        player.score = PlayRound(playerIndex, player.name, ui);
+        computer.score = PlayRound(computerIndex, computer.name, ui);
 
         ui.DisplayGameResult(player.score, computer.score);
     }
 
-    private Dice SelectPlayerDice(GameUI ui)
+    private int SelectPlayerDice(GameUI ui)
     {
-        var displayOptions = availableDice.Select(d => d.ToString()).ToArray();
-        int choice = ui.GetDiceSelection(displayOptions, player.name);
-        var selected = availableDice[choice];
-        availableDice.RemoveAt(choice);
-        return selected;
+        var options = availableDiceIndices.Select(i => diceList[i].ToString()).ToArray();
+        int choice = ui.GetDiceSelection(options, player.name);
+        int selectedIndex = availableDiceIndices[choice];
+        availableDiceIndices.RemoveAt(choice);
+        return selectedIndex;
     }
 
-    private Dice SelectComputerDice()
+    private int SelectComputerDice()
     {
-        int choice = cryptoService.GenerateUniformRandomInt(0, availableDice.Count - 1);
-        var selected = availableDice[choice];
-        availableDice.RemoveAt(choice);
-        return selected;
+        int choice = RandomNumberGenerator.GetInt32(0, availableDiceIndices.Count);
+        int selectedIndex = availableDiceIndices[choice];
+        availableDiceIndices.RemoveAt(choice);
+        return selectedIndex;
     }
 
-    private int PlayRound(Dice dice, string playerName, GameUI ui)
+    private int PlayRound(int diceIndex, string playerName, GameUI ui)
     {
         ui.DisplayRollPrompt(playerName);
-        int[] values = dice.diceSet;
+        var values = diceList[diceIndex].diceSet;
         int range = values.Length;
 
         var (key, computerNumber, hmac) = cryptoService.GenerateCommitment(0, range - 1);

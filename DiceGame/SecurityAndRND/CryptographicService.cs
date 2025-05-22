@@ -8,7 +8,7 @@ public class CryptographicService
     public (byte[] Key, int Number, string Hmac) GenerateCommitment(int minValue, int maxValue)
     {
         var key = GenerateSecretKey();
-        var number = GenerateUniformRandomInt(minValue, maxValue);
+        var number = RandomNumberGenerator.GetInt32(minValue, maxValue+1);
         var hmac = ComputeHmacSha3(key, number);
         return (key, number, BitConverter.ToString(hmac).Replace("-", ""));
     }
@@ -21,7 +21,7 @@ public class CryptographicService
         return key;
     }
 
-    public int GenerateUniformRandomInt(int minValue, int maxValue) => RandomNumberGenerator.GetInt32(minValue, maxValue + 1);
+    //public int GenerateUniformRandomInt(int minValue, int maxValue) => RandomNumberGenerator.GetInt32(minValue, maxValue + 1);
 
 
     public byte[] ComputeHmacSha3(byte[] key, int message)
