@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "lv1vmDQj8j4U5V/mesOXEtpch3krZrHBWm62Xqcy61kcHLg6DhRNymZoYp+eqZ2aMbfGnSG0QqTdDkRhf/aI/g==",
+  "success": true,
+  "projectFilePath": "/home/sifat/Documents/c#dev/dice/dice.csproj",
+  "expectedPackageFiles": [
+    "/home/sifat/.nuget/packages/consoletables/2.6.2/consoletables.2.6.2.nupkg.sha512",
+    "/home/sifat/.nuget/packages/wcwidth/1.0.0/wcwidth.1.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
