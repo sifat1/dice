@@ -4,41 +4,34 @@ using System.Collections.Generic;
 
 public class DiceGame
 {
-    CryptographicService cryptoService;
-    string currentPlayerDiceLabel, currentComputerDiceLabel;
-    Player player, computer;
+    private CryptographicService cryptoService;
+    private Player player = new("Player");
+    private Player computer = new("Computer");
 
-    List<Dice> diceList = new List<Dice>();            
-    List<Dice> availableDice = new List<Dice>();       
-    List<string> diceLabels = new List<string>(); 
+    private List<Dice> diceList = new();
+    private List<Dice> availableDice = new();
+    private Dictionary<Dice, string> diceLabels = new();
 
     public DiceGame(string[] diceSets, CryptographicService cryptoService)
     {
         this.cryptoService = cryptoService;
-        player = new Player("Player");
-        computer = new Player("Computer");
 
         foreach (var diceSet in diceSets)
         {
-            int[] parsedDice = ParseDice.Parse(diceSet);
-            diceList.Add(new Dice(parsedDice));
-            diceLabels.Add(diceSet);
+            var dice = new Dice(ParseDice.Parse(diceSet));
+            diceList.Add(dice);
+            diceLabels[dice] = diceSet;
         }
 
         ResetAvailableDice();
     }
 
-    private void ResetAvailableDice()
-    {
-        availableDice = new List<Dice>(diceList);
-    }
+    private void ResetAvailableDice() => availableDice = new List<Dice>(diceList);
 
     public void StartGame()
     {
-        var ui = new GameUI(diceLabels.ToArray());
-        ResetAvailableDice();
+        var ui = new GameUI(diceLabels.Values.ToArray());
 
-        
         ui.DisplayMessage("Let's determine who makes the first move.");
         var (key, computerNumber, hmac) = cryptoService.GenerateCommitment(0, 1);
         ui.DisplayCommitment(hmac, 0, 1);
@@ -49,50 +42,48 @@ public class DiceGame
         bool userGoesFirst = userGuess == computerNumber;
         ui.DisplayFirstMoveResult(userGoesFirst);
 
-        int playerIndex, computerIndex;
+        Dice playerDice, computerDice;
 
         if (userGoesFirst)
         {
-            
-            playerIndex = ui.GetDiceSelection(availableDice.Select(d => d.ToString()).ToArray(), player.name);
-            Dice playerDice = availableDice[playerIndex];
-            currentPlayerDiceLabel = diceLabels[diceList.IndexOf(playerDice)];
-            availableDice.RemoveAt(playerIndex);
-
-            
-            computerIndex = cryptoService.GenerateUniformRandomInt(0, availableDice.Count - 1);
-            Dice computerDice = availableDice[computerIndex];
-            currentComputerDiceLabel = diceLabels[diceList.IndexOf(computerDice)];
+            playerDice = SelectPlayerDice(ui);
+            computerDice = SelectComputerDice();
         }
         else
         {
-        
-            computerIndex = cryptoService.GenerateUniformRandomInt(0, availableDice.Count - 1);
-            Dice computerDice = availableDice[computerIndex];
-            currentComputerDiceLabel = diceLabels[diceList.IndexOf(computerDice)];
-            availableDice.RemoveAt(computerIndex);
-
-            
-            playerIndex = ui.GetDiceSelection(availableDice.Select(d => d.ToString()).ToArray(), player.name);
-            Dice playerDice = availableDice[playerIndex];
-            currentPlayerDiceLabel = diceLabels[diceList.IndexOf(playerDice)];
+            computerDice = SelectComputerDice();
+            playerDice = SelectPlayerDice(ui);
         }
 
-        ui.DisplayDiceChoice(currentPlayerDiceLabel, player.name);
-        ui.DisplayDiceChoice(currentComputerDiceLabel, computer.name);
+        ui.DisplayDiceChoice(diceLabels[playerDice], player.name);
+        ui.DisplayDiceChoice(diceLabels[computerDice], computer.name);
 
-        
-        player.score = PlayRound(currentPlayerDiceLabel, player.name, ui);
-        computer.score = PlayRound(currentComputerDiceLabel, computer.name, ui);
+        player.score = PlayRound(playerDice, player.name, ui);
+        computer.score = PlayRound(computerDice, computer.name, ui);
 
-        
         ui.DisplayGameResult(player.score, computer.score);
     }
 
-    private int PlayRound(string diceLabel, string player, GameUI ui)
+    private Dice SelectPlayerDice(GameUI ui)
     {
-        ui.DisplayRollPrompt(player);
-        Dice dice = diceList[diceLabels.IndexOf(diceLabel)];
+        var displayOptions = availableDice.Select(d => d.ToString()).ToArray();
+        int choice = ui.GetDiceSelection(displayOptions, player.name);
+        var selected = availableDice[choice];
+        availableDice.RemoveAt(choice);
+        return selected;
+    }
+
+    private Dice SelectComputerDice()
+    {
+        int choice = cryptoService.GenerateUniformRandomInt(0, availableDice.Count - 1);
+        var selected = availableDice[choice];
+        availableDice.RemoveAt(choice);
+        return selected;
+    }
+
+    private int PlayRound(Dice dice, string playerName, GameUI ui)
+    {
+        ui.DisplayRollPrompt(playerName);
         int[] values = dice.diceSet;
         int range = values.Length;
 
@@ -105,9 +96,8 @@ public class DiceGame
         int result = (computerNumber + userNumber) % range;
         ui.DisplayModularResult(computerNumber, userNumber, result, range);
 
-        int rollResult = values[result];
-        ui.DisplayRollResult(rollResult, player);
-
-        return rollResult;
+        int roll = values[result];
+        ui.DisplayRollResult(roll, playerName);
+        return roll;
     }
 }

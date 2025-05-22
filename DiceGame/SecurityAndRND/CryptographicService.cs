@@ -21,23 +21,8 @@ public class CryptographicService
         return key;
     }
 
-    public int GenerateUniformRandomInt(int minValue, int maxValue)
-    {
-        uint range = (uint)(maxValue - minValue + 1);
-        uint maxExclusive = uint.MaxValue - (uint.MaxValue % range + 1) % range;
-        uint randomValue;
-        
-        using (var rng = RandomNumberGenerator.Create())
-        {
-            byte[] randomBytes = new byte[4];
-            do
-            {
-                rng.GetBytes(randomBytes);
-                randomValue = BitConverter.ToUInt32(randomBytes, 0);
-            } while (randomValue >= maxExclusive);
-        }
-        return (int)(randomValue % range) + minValue;
-    }
+    public int GenerateUniformRandomInt(int minValue, int maxValue) => RandomNumberGenerator.GetInt32(minValue, maxValue + 1);
+
 
     public byte[] ComputeHmacSha3(byte[] key, int message)
     {
