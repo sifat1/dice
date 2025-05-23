@@ -26,7 +26,7 @@ public class ProbabilityTableGenerator
     {
         double[,] probabilities = GenerateProbabilityTable(diceSets);
         int n = diceSets.Count;
-        string title = "Probability of the win fоr the user:";
+        string title = "Probability of the win for the user:";
         var headers = new string[n + 1];
         headers[0] = "User dice v";
         Console.WriteLine(title);
